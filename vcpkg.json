@@ -1,5 +1,6 @@
 {
   "dependencies": [
-    "xtensor"
+    "xtensor",
+    "nlohmann-json"
   ]
 }

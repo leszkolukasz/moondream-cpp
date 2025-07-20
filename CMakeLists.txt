@@ -3,6 +3,9 @@ project(moondream_cpp)
 
 include("$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake")
 
+find_package(xtensor CONFIG REQUIRED)
+find_package(nlohmann_json CONFIG REQUIRED)
+
 add_subdirectory(external/onnxruntime)
 add_subdirectory(common)
 add_subdirectory(desktop)

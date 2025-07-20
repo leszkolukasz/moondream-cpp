@@ -8,4 +8,5 @@ add_executable(moondream_desktop
 
 target_link_libraries(moondream_desktop
     onnxruntime
+    moondream
 )
