@@ -2,6 +2,4 @@
 
 #include <tokenizer.h>
 
-namespace moondream {
-
-}
+namespace moondream {}

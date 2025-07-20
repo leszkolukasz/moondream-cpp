@@ -12,5 +12,9 @@ build_linux:
 
 run_linux: build_linux
 	@./build/linux-debug/desktop/moondream_desktop
+
+format:
+	git ls-files '*.cpp' '*.h' ':!external/*' | xargs clang-format -i
+
 clean:
 	rm -rf build
