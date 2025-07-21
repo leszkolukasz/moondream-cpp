@@ -18,23 +18,30 @@ class Moondream {
 public:
   explicit Moondream(const std::string &model_path) {
     Ort::SessionOptions options;
-    options.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
+    options.SetGraphOptimizationLevel(ORT_ENABLE_ALL);
 
-    coord_encoder = load_ONNX(model_path + "/coord_encoder.onnx", options);
-    coord_decoder = load_ONNX(model_path + "/coord_decoder.onnx", options);
-    size_encoder = load_ONNX(model_path + "/size_encoder.onnx", options);
-    size_decoder = load_ONNX(model_path + "/size_decoder.onnx", options);
-    text_encoder = load_ONNX(model_path + "/text_encoder.onnx", options);
-    text_decoder = load_ONNX(model_path + "/text_decoder.onnx", options);
-    vision_encoder = load_ONNX(model_path + "/vision_encoder.onnx", options);
-    vision_projection =
-        load_ONNX(model_path + "/vision_projection.onnx", options);
+    coord_encoder = std::make_unique<Ort::Session>(
+        load_ONNX(model_path + "/coord_encoder.onnx", options));
+    coord_decoder = std::make_unique<Ort::Session>(
+        load_ONNX(model_path + "/coord_decoder.onnx", options));
+    size_encoder = std::make_unique<Ort::Session>(
+        load_ONNX(model_path + "/size_encoder.onnx", options));
+    size_decoder = std::make_unique<Ort::Session>(
+        load_ONNX(model_path + "/size_decoder.onnx", options));
+    text_encoder = std::make_unique<Ort::Session>(
+        load_ONNX(model_path + "/text_encoder.onnx", options));
+    text_decoder = std::make_unique<Ort::Session>(
+        load_ONNX(model_path + "/text_decoder.onnx", options));
+    vision_encoder = std::make_unique<Ort::Session>(
+        load_ONNX(model_path + "/vision_encoder.onnx", options));
+    vision_projection = std::make_unique<Ort::Session>(
+        load_ONNX(model_path + "/vision_projection.onnx", options));
 
     config = std::make_unique<nlohmann::json>(
-        std::move(load_json(model_path + "/config.json")));
+        load_json(model_path + "/config.json"));
 
     initial_kv_cache = std::make_unique<xt::xarray<float>>(
-        std::move(xt::load_npy<float>(model_path + "/initial_kv_cache.npy")));
+        xt::load_npy<float>(model_path + "/initial_kv_cache.npy"));
 
     tokenizer = std::make_unique<Tokenizer>(model_path + "/tokenizer.json");
   }
@@ -60,45 +67,14 @@ public:
     patches =
         xt::moveaxis(patches, 3, 1); // (num patches, 3, patchSize, patchSize)
 
-    std::cout << "Patches shape: " << xt::adapt(patches.shape());
+    // There is segmentation fault without this line. WHY???
+    Ort::Env env(ORT_LOGGING_LEVEL_WARNING, "moondream");
 
-    std::vector<int64_t> input_dims = {5, 3, 378, 378}; // example shape
-    xt::xarray<float> input_tensor_values = xt::ones<float>(input_dims);
-
-    Ort::Env env(ORT_LOGGING_LEVEL_WARNING, "native");
-    Ort::SessionOptions session_options;
-    session_options.SetGraphOptimizationLevel(ORT_ENABLE_ALL);
-
-    const char *model_path = "./data/vision_encoder.onnx";
-    Ort::Session session(env, model_path, session_options);
-
-    Ort::MemoryInfo memory_info =
-        Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
-    Ort::Value input_tensor = Ort::Value::CreateTensor<float>(
-        memory_info, input_tensor_values.data(), input_tensor_values.size(),
-        input_dims.data(), input_dims.size());
-
-    std::cout << "I am here" << std::endl;
     Ort::Value *input_values = new Ort::Value[1];
-    // input_values[0] = std::move(input_tensor);
     input_values[0] = std::move(to_ort_value<float>(patches));
 
-    std::vector<std::string> input_names = {"input"};
-    std::vector<std::string> output_names = {"output"};
-
-    // const char *input_names[] = {"input"};
-    // const char *output_names[] = {"output"};
-
-    std::cout << "Now here" << std::endl;
-    // std::cout << patches << std::endl;
     auto result =
-        run_onnx(*vision_encoder, input_names, input_values, output_names);
-    // auto output_tensors =
-    //     vision_encoder->Run(Ort::RunOptions{nullptr}, input_names,
-    //     input_values,
-    //                         1, output_names, 1);
-
-    std::cout << "AFter" << std::endl;
+        run_onnx(*vision_encoder, {"input"}, input_values, {"output"});
 
     // auto result = runONNX(vision_encoder, {{"input",
     // toTensor(patches)}}); auto patch_emb = fromTensor(result["output"]);

@@ -18,10 +18,10 @@ inline nlohmann::json load_json(const std::string &config_path) {
   return j;
 }
 
-inline std::unique_ptr<Ort::Session>
-load_ONNX(const std::string &model_path, const Ort::SessionOptions &options) {
+inline Ort::Session load_ONNX(const std::string &model_path,
+                              const Ort::SessionOptions &options) {
   Ort::Env env(ORT_LOGGING_LEVEL_WARNING, "moondream");
-  return std::make_unique<Ort::Session>(env, model_path.c_str(), options);
+  return Ort::Session(env, model_path.c_str(), options);
 }
 
 inline std::vector<Ort::Value>
@@ -51,8 +51,6 @@ template <typename T> inline Ort::Value to_ort_value(xt::xarray<T> &tensor) {
   for (size_t i = 0; i < tensor.shape().size(); ++i) {
     shape[i] = static_cast<int64_t>(tensor.shape()[i]);
   }
-
-  std::cout << tensor.size() << " " << shape.size() << std::endl;
 
   Ort::Value value = Ort::Value::CreateTensor<T>(
       memory_info, tensor.data(), tensor.size(), shape.data(), shape.size());
