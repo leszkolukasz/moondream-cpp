@@ -7,6 +7,7 @@ find_package(xtensor CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 
 add_subdirectory(external/onnxruntime)
+add_subdirectory(external/stb)
 add_subdirectory(common)
 add_subdirectory(desktop)
 # add_subdirectory(mobile)

@@ -1,6 +1,9 @@
 #include <iostream>
-#include <moondream.h>
+#include <moondream/image.h>
+#include <moondream/tensor.h>
+#include <moondream/tokenizer.h>
 #include <onnxruntime_cxx_api.h>
+#include <xtensor/io/xio.hpp>
 
 int main() {
   // try {
@@ -43,17 +46,38 @@ int main() {
   // }
 
   using namespace moondream;
-  Tokenizer tokenizer("../moondream-mobile/assets/models/tokenizer.json");
+  // Tokenizer tokenizer("../moondream-mobile/assets/models/tokenizer.json");
 
-  auto encoded = tokenizer.encode("Hello, world!");
-  std::cout << "Encoded tokens: ";
-  for (const auto &id : encoded) {
-    std::cout << id << " ";
-  }
-  std::cout << std::endl;
+  // auto encoded = tokenizer.encode("Hello, world!");
+  // std::cout << "Encoded tokens: ";
+  // for (const auto &id : encoded) {
+  //   std::cout << id << " ";
+  // }
+  // std::cout << std::endl;
 
-  auto decoded = tokenizer.decode(encoded);
-  std::cout << "Decoded text: " << decoded << std::endl;
+  // auto decoded = tokenizer.decode(encoded);
+  // std::cout << "Decoded text: " << decoded << std::endl;
+
+  // auto image = load_image("frieren.jpg");
+
+  // std::cout << "Image loaded with shape: " << image.shape()[0] << "x"
+  //           << image.shape()[1] << "x" << image.shape()[2] << std::endl;
+
+  // auto resized = resize_tensor(xt::cast<float>(image), 100, 200);
+
+  // std::cout << "Image resized with shape: " << resized.shape()[0] << "x"
+  //           << resized.shape()[1] << "x" << resized.shape()[2] << std::endl;
+
+  // save_image(xt::cast<uint8_t>(resized), "output.jpg");
+
+  xt::xarray<float> ones = xt::ones<float>({1, 3});
+  xt::xarray<float> zeros = xt::zeros<float>({1, 3});
+
+  std::vector<xt::xarray<float>> vec = {ones, zeros};
+
+  auto stacked = concat_vector(vec, 1);
+
+  std::cout << stacked << std::endl;
 
   return 0;
 }
