@@ -10,17 +10,14 @@
 #include <unordered_map>
 #include <vector>
 
+#include <moondream/utils.h>
+
 namespace moondream {
 
 class Tokenizer {
 public:
   explicit Tokenizer(const std::string &config_path) {
-    std::ifstream input(config_path);
-    if (!input.is_open()) {
-      throw std::runtime_error("Unable to open tokenizer config file.");
-    }
-    nlohmann::json j;
-    input >> j;
+    auto j = load_json(config_path);
     parse_config(j);
   }
 
