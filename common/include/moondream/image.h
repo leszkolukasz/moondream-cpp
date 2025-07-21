@@ -19,7 +19,8 @@
 namespace moondream {
 
 struct EncodedImage {
-  xt::xarray<float> kv_cache; // (layer, K/V, batch, head, seq_len, dim)
+  std::unique_ptr<xt::xarray<float>>
+      kv_cache; // (layer, K/V, batch, head, seq_len, dim)
 };
 
 inline xt::xarray<uint8_t> load_image(const std::string &image_path) {
@@ -83,7 +84,7 @@ inline xt::xarray<float> adaptiveAvgPooling2D(const xt::xarray<float> &input,
                             xt::range(w_start, w_end), xt::all());
       auto avg = xt::mean(patch, {0, 1});
 
-      xt::view(output, xt::all(), xt::all(), xt::all()) = avg;
+      xt::view(output, i, j, xt::all()) = avg;
     }
   }
 
@@ -154,8 +155,8 @@ create_patches(const xt::xarray<float> &image, int patch_size = PATCH_SIZE) {
 inline xt::xarray<float>
 process_patch_embeddings(xt::xarray<float> patch_emb,
                          std::pair<int, int> patch_template) {
-  xt::xarray<float> global_patch_emb = xt::reshape_view(
-      xt::view(patch_emb, 0, xt::all(), xt::all()), {1, 729, 720});
+  xt::xarray<float> global_patch_emb =
+      xt::view(patch_emb, 0, xt::all(), xt::all());
 
   if (patch_template.first == 1 && patch_template.second == 1) {
     return concat_vector({global_patch_emb, global_patch_emb}, 1);
@@ -172,7 +173,7 @@ process_patch_embeddings(xt::xarray<float> patch_emb,
     for (int c = 0; c < patch_template.second; ++c) {
       int idx = r * patch_template.second + c;
       auto patch = xt::reshape_view(
-          xt::view(patch_emb, idx, xt::all(), xt::all()), {1, w, w, 720});
+          xt::view(patch_emb, idx, xt::all(), xt::all()), {w, w, 720});
       row.push_back(patch);
     }
     rows.push_back(concat_vector(row, 1));
@@ -180,6 +181,7 @@ process_patch_embeddings(xt::xarray<float> patch_emb,
 
   auto grid = concat_vector(rows, 0);
   grid = adaptiveAvgPooling2D(grid, {w, w});
+
   grid.reshape({w * w, 720});
 
   return xt::concatenate(xt::xtuple(global_patch_emb, grid), 1);

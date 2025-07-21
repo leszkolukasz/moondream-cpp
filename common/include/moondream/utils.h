@@ -19,8 +19,8 @@ inline nlohmann::json load_json(const std::string &config_path) {
 }
 
 inline Ort::Session load_ONNX(const std::string &model_path,
+                              const Ort::Env &env,
                               const Ort::SessionOptions &options) {
-  Ort::Env env(ORT_LOGGING_LEVEL_WARNING, "moondream");
   return Ort::Session(env, model_path.c_str(), options);
 }
 
@@ -55,5 +55,16 @@ template <typename T> inline Ort::Value to_ort_value(xt::xarray<T> &tensor) {
   Ort::Value value = Ort::Value::CreateTensor<T>(
       memory_info, tensor.data(), tensor.size(), shape.data(), shape.size());
   return value;
+}
+
+inline xt::xarray<float> from_ort_value(const Ort::Value &value) {
+  const float *data = value.GetTensorData<float>();
+  const auto &shape = value.GetTensorTypeAndShapeInfo().GetShape();
+
+  xt::xarray<float> tensor = xt::xarray<float>::from_shape(shape);
+  std::copy(data, data + value.GetTensorTypeAndShapeInfo().GetElementCount(),
+            tensor.data());
+
+  return tensor;
 }
 } // namespace moondream

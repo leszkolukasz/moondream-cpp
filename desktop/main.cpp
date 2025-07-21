@@ -89,8 +89,13 @@ int main() {
   // std::cout << stacked << std::endl;
 
   Moondream dream("/media/whistleroosh/Universal/projects/moondream-cpp/data");
-  dream.encode_image(
-      "/media/whistleroosh/Universal/projects/moondream-cpp/frieren.jpg");
+  // auto res = dream.encode_image(
+  //     "/media/whistleroosh/Universal/projects/moondream-cpp/frieren.jpg");
+  // std::cout << xt::adapt(res->kv_cache->shape()) << std::endl;
+
+  dream.caption(
+      "/media/whistleroosh/Universal/projects/moondream-cpp/frieren.jpg",
+      "short", 50);
 
   return 0;
 }
