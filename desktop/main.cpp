@@ -95,7 +95,7 @@ int main() {
 
   dream.caption(
       "/media/whistleroosh/Universal/projects/moondream-cpp/frieren.jpg",
-      "short", 50);
+      "normal", 100);
 
   return 0;
 }

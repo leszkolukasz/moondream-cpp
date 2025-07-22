@@ -137,8 +137,9 @@ create_patches(const xt::xarray<float> &image, int patch_size = PATCH_SIZE) {
                                 xt::range(colStart, colEnd), xt::all());
 
         xt::xarray<float> patch =
-            normalize(resize_tensor(cropped, patch_size, patch_size));
-        patches.push_back(patch);
+            resize_tensor(cropped, patch_size, patch_size);
+
+        patches.push_back(normalize(patch));
       }
     }
   }
@@ -181,7 +182,6 @@ process_patch_embeddings(xt::xarray<float> patch_emb,
 
   auto grid = concat_vector(rows, 0);
   grid = adaptiveAvgPooling2D(grid, {w, w});
-
   grid.reshape({w * w, 720});
 
   return xt::concatenate(xt::xtuple(global_patch_emb, grid), 1);

@@ -64,15 +64,12 @@ public:
                 << target_width << "x" << target_height << " with scale "
                 << scale << std::endl;
 
-      image = resize_tensor(image, target_width, target_height);
+      image = resize_tensor(image, target_height, target_width);
     }
 
     auto [patches, patch_template] = create_patches(image);
-    patches =
-        xt::moveaxis(patches, 3, 1); // (num patches, 3, patchSize, patchSize)
-
-    // There is segmentation fault without this line. WHY???
-    // Ort::Env env(ORT_LOGGING_LEVEL_WARNING, "moondream");
+    patches = xt::transpose(
+        patches, {0, 3, 1, 2}); // (num patches, 3, patchSize, patchSize)
 
     Ort::Value *input_values = new Ort::Value[2];
     input_values[0] = std::move(to_ort_value<float>(patches));
@@ -117,23 +114,33 @@ public:
     for (int generated = 0; generated < max_tokens; ++generated) {
       Ort::Value *input_values = new Ort::Value[2];
       input_values[0] = std::move(input_embeds_ort);
-      input_values[1] = std::move(to_ort_value<float>(kv_cache));
+
+      xt::xarray<float> relevant_kv_cache = xt::xarray<float>::from_shape(
+          {24, 2, 1, 16, static_cast<unsigned long>(kv_size), 64});
+      relevant_kv_cache = xt::view(kv_cache, xt::all(), xt::all(), xt::all(),
+                                   xt::all(), xt::range(0, kv_size), xt::all());
+
+      input_values[1] = std::move(to_ort_value<float>(relevant_kv_cache));
 
       auto result = run_onnx(*text_decoder, {"input_embeds", "kv_cache"},
                              input_values, {"logits", "new_kv_cache"});
 
       auto logits = from_ort_value(result.at(0)); // (1, 51200)
-      auto new_kv_cache = from_ort_value(result.at(1));
+      auto kv_cache_update = from_ort_value(result.at(1));
 
       xt::view(kv_cache, xt::all(), xt::all(), xt::all(), xt::all(),
                xt::range(kv_size, kv_size + input_len), xt::all()) =
-          new_kv_cache;
+          kv_cache_update;
 
       kv_size += input_len;
 
-      auto next_token = static_cast<int>(xt::argmax(logits, 1)[0]);
+      auto next_token = static_cast<int>(xt::argmax(logits, 1)(0));
+
+      // EOS
+      if (next_token == 50256)
+        break;
+
       text += tokenizer->decode({next_token});
-      generated++;
 
       auto input_ids = xt::xarray<int64_t>::from_shape({1, 1});
       input_ids(0, 0) = next_token;
@@ -153,29 +160,19 @@ public:
 
   std::string caption(const std::string &image_uri, const std::string &length,
                       int max_tokens = 50) const {
-    std::cout << "Hej?" << std::endl;
     auto prompt = config->at("templates")
                       .at("caption")
                       .at(length)
                       .get<std::vector<int>>();
 
-    std::cout << "Prompt: " << std::flush;
-
-    using typ = long;
-    xt::xarray<typ> input_ids = xt::xarray<typ>::from_shape({1, prompt.size()});
-
-    std::cout << "Input IDs: " << std::flush;
+    xt::xarray<int64_t> input_ids =
+        xt::xarray<int64_t>::from_shape({1, prompt.size()});
 
     for (size_t i = 0; i < prompt.size(); ++i) {
       input_ids(0, i) = prompt[i];
-      std::cout << input_ids(0, i) << " ";
     }
 
-    std::cout << "After" << std::flush;
-
-    // Ort::Env env(ORT_LOGGING_LEVEL_WARNING, "moondream");
-
-    auto input_ids_ort = to_ort_value<typ>(input_ids);
+    auto input_ids_ort = to_ort_value<int64_t>(input_ids);
     auto result = run_onnx(*text_encoder, {"input_ids"}, &input_ids_ort,
                            {"input_embeds"});
 

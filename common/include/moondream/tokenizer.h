@@ -55,7 +55,7 @@ public:
     std::string output = result.str();
     size_t pos = 0;
     while ((pos = output.find("Ġ", pos)) != std::string::npos) {
-      output.replace(pos, 3, " ");
+      output.replace(pos, 2, " ");
       ++pos;
     }
     return output;
