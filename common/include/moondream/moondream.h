@@ -25,6 +25,11 @@ public:
     Ort::SessionOptions options;
     options.SetGraphOptimizationLevel(ORT_ENABLE_ALL);
 
+#if defined(ANDROID) || defined(__ANDROID__)
+    options.AppendExecutionProvider(
+        "XNNPACK", {{"intra_op_num_threads", std::to_string(8)}});
+#endif
+
     env = std::make_unique<Ort::Env>(
         Ort::Env(ORT_LOGGING_LEVEL_WARNING, "moondream"));
 
@@ -106,7 +111,8 @@ public:
 
   inline std::string
   generate(xt::xarray<float> input_embeds, // (1, seq_len, 1024)
-           const EncodedImage &encoded_image, int max_tokens) const {
+           const EncodedImage &encoded_image, int max_tokens,
+           std::function<void(const std::string &)> *onToken) const {
     int kv_size = encoded_image.kv_cache->shape()[4];
     int input_len = input_embeds.shape()[1];
 
@@ -146,6 +152,9 @@ public:
 
       text += tokenizer->decode({next_token});
 
+      if (onToken)
+        (*onToken)(text);
+
       auto input_ids = xt::xarray<int64_t>::from_shape({1, 1});
       input_ids(0, 0) = next_token;
 
@@ -162,9 +171,10 @@ public:
     return text;
   }
 
-  inline std::string caption(const std::string &image_uri,
-                             const std::string &length,
-                             int max_tokens = 50) const {
+  inline std::string
+  caption(const std::string &image_uri, const std::string &length,
+          int max_tokens = 50,
+          std::function<void(const std::string &)> *onToken = nullptr) const {
     auto prompt = config->at("templates")
                       .at("caption")
                       .at(length)
@@ -184,7 +194,7 @@ public:
     auto input_embeds = from_ort_value(result.at(0));
 
     auto image = encode_image(image_uri);
-    return generate(input_embeds, image, max_tokens);
+    return generate(input_embeds, image, max_tokens, onToken);
   }
 
 private:

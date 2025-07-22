@@ -15,6 +15,7 @@ ApplicationWindow {
     MoondreamWrapper {
         id: moondream
         onReadyChanged: console.log("Model ready:", ready)
+        onPartialCaptionResult: (result) => resultText.text = result
         onCaptionResult: (result) => resultText.text = result
         onError: console.log("Error:", message)
     }
@@ -29,12 +30,14 @@ ApplicationWindow {
             text: "Load Model"
             width: parent.width
             onClicked: moondream.load()
+            enabled: !moondream.running && !moondream.ready
         }
 
         Button {
             text: "Pick Image"
             width: parent.width
             onClicked: fileDialog.open()
+            enabled: !moondream.running
         }
 
         Image {
@@ -50,7 +53,7 @@ ApplicationWindow {
         Button {
             text: "Caption Image"
             width: parent.width
-            enabled: moondream.ready && selectedImage.source.toString() !== ""
+            enabled: moondream.ready && selectedImage.source.toString() !== "" && !moondream.running
             onClicked: moondream.caption(selectedImage.source.toString(), "short")
         }
 

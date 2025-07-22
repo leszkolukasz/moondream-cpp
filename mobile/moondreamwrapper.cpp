@@ -8,6 +8,10 @@ bool MoondreamWrapper::isReady() const {
     return m_ready;
 }
 
+bool MoondreamWrapper::isRunning() const {
+    return m_running;
+}
+
 void MoondreamWrapper::load() {
     QStringList files {
         "https://huggingface.co/whistleroosh/moondream-0.5B/resolve/main/config.json",
@@ -57,14 +61,30 @@ void MoondreamWrapper::caption(const QString& imagePath, const QString& mode) {
 
     auto _ = QtConcurrent::run([=, this]() {
         try {
+            m_running = true;
+            emit runningChanged();
+
+            auto cb = new std::function<void(const std::string&)>(
+                [this](const std::string& partial) {
+                    emit captionResult(QString::fromStdString(partial));
+                }
+            );
+
             auto result = m_moondream->caption(
                 // imagePath.toStdString(),
                 outDir.toStdString() + "/frieren.jpg",
                 mode.toStdString(),
-                100);
+                100,
+                cb
+                );
+
+            delete cb;
             emit captionResult(QString::fromStdString(result));
         } catch (const std::exception& e) {
             emit error(QString("Captioning failed: %1").arg(e.what()));
         }
+
+        m_running = false;
+        emit runningChanged();
     });
 }
