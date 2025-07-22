@@ -17,7 +17,7 @@ namespace moondream {
 
 class Moondream {
 public:
-  explicit Moondream(const std::string &model_path) {
+  inline explicit Moondream(const std::string &model_path) {
     Ort::SessionOptions options;
     options.SetGraphOptimizationLevel(ORT_ENABLE_ALL);
 
@@ -100,9 +100,9 @@ public:
         std::make_unique<xt::xarray<float>>(std::move(kv_cache)));
   }
 
-  std::string generate(xt::xarray<float> input_embeds, // (1, seq_len, 1024)
-                       const EncodedImage &encoded_image,
-                       int max_tokens) const {
+  inline std::string
+  generate(xt::xarray<float> input_embeds, // (1, seq_len, 1024)
+           const EncodedImage &encoded_image, int max_tokens) const {
     int kv_size = encoded_image.kv_cache->shape()[4];
     int input_len = input_embeds.shape()[1];
 
@@ -158,8 +158,9 @@ public:
     return text;
   }
 
-  std::string caption(const std::string &image_uri, const std::string &length,
-                      int max_tokens = 50) const {
+  inline std::string caption(const std::string &image_uri,
+                             const std::string &length,
+                             int max_tokens = 50) const {
     auto prompt = config->at("templates")
                       .at("caption")
                       .at(length)
@@ -198,7 +199,7 @@ private:
   std::unique_ptr<Tokenizer> tokenizer;
   std::unique_ptr<nlohmann::json> config;
 
-  xt::xarray<float> prepare_kv_cache(const EncodedImage &src) const {
+  inline xt::xarray<float> prepare_kv_cache(const EncodedImage &src) const {
     auto old_shape = src.kv_cache->shape();
 
     std::vector<std::size_t> new_shape(old_shape.begin(), old_shape.end());

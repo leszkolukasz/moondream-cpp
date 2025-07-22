@@ -93,7 +93,7 @@ inline xt::xarray<float> adaptiveAvgPooling2D(const xt::xarray<float> &input,
 
 // Input: (height, width, 3) tensor
 // Output: patches (num patches, patchSize, patchSize, 3), template (rows, cols)
-std::pair<xt::xarray<float>, std::pair<int, int>>
+inline std::pair<xt::xarray<float>, std::pair<int, int>>
 create_patches(const xt::xarray<float> &image, int patch_size = PATCH_SIZE) {
   int height = static_cast<int>(image.shape()[0]);
   int width = static_cast<int>(image.shape()[1]);
