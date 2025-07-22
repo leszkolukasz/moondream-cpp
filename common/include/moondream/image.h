@@ -57,8 +57,9 @@ inline xt::xarray<float> normalize(const xt::xarray<float> &arr,
   return (arr / 255.0f - mean) / std;
 }
 
-inline xt::xarray<float> adaptiveAvgPooling2D(const xt::xarray<float> &input,
-                                              std::pair<int, int> outputSize) {
+inline xt::xarray<float>
+adaptive_avg_pooling_2D(const xt::xarray<float> &input,
+                        std::pair<int, int> outputSize) {
   int inputHeight = input.shape()[0];
   int inputWidth = input.shape()[1];
   int channels = input.shape()[2];
@@ -181,7 +182,7 @@ process_patch_embeddings(xt::xarray<float> patch_emb,
   }
 
   auto grid = concat_vector(rows, 0);
-  grid = adaptiveAvgPooling2D(grid, {w, w});
+  grid = adaptive_avg_pooling_2D(grid, {w, w});
   grid.reshape({w * w, 720});
 
   return xt::concatenate(xt::xtuple(global_patch_emb, grid), 1);

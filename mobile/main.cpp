@@ -1,9 +1,13 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 
+#include "moondreamwrapper.h"
+
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
+
+    qmlRegisterType<MoondreamWrapper>("moondream_mobile", 1, 0, "MoondreamWrapper");
 
     QQmlApplicationEngine engine;
     QObject::connect(

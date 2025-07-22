@@ -166,11 +166,11 @@ LICENSE
 #endif
 #endif
 
-#ifndef STB_IMAGE_WRITE_STATIC  // C++ forbids static forward declarations
-STBIWDEF int stbi_write_tga_with_rle;
-STBIWDEF int stbi_write_png_compression_level;
-STBIWDEF int stbi_write_force_png_filter;
-#endif
+// #ifndef STB_IMAGE_WRITE_STATIC  // C++ forbids static forward declarations
+// STBIWDEF int stbi_write_tga_with_rle;
+// STBIWDEF int stbi_write_png_compression_level;
+// STBIWDEF int stbi_write_force_png_filter;
+// #endif
 
 #ifndef STBI_WRITE_NO_STDIO
 STBIWDEF int stbi_write_png(char const *filename, int w, int h, int comp, const void  *data, int stride_in_bytes);
@@ -252,9 +252,9 @@ static int stbi_write_png_compression_level = 8;
 static int stbi_write_tga_with_rle = 1;
 static int stbi_write_force_png_filter = -1;
 #else
-int stbi_write_png_compression_level = 8;
-int stbi_write_tga_with_rle = 1;
-int stbi_write_force_png_filter = -1;
+inline int stbi_write_png_compression_level = 8;
+inline int stbi_write_tga_with_rle = 1;
+inline int stbi_write_force_png_filter = -1;
 #endif
 
 static int stbi__flip_vertically_on_write = 0;

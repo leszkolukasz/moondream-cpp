@@ -1,5 +1,9 @@
 #pragma once
 
+#define STBIDEF inline  // stb_image.h
+#define STBIWDEF inline // stb_image_write.h
+#define STBIRDEF inline // stb_image_resize2.h
+
 #include <memory>
 #include <onnxruntime_cxx_api.h>
 #include <string>
