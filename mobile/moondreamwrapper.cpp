@@ -8,7 +8,7 @@ bool MoondreamWrapper::isReady() const {
     return m_ready;
 }
 
-void MoondreamWrapper::load(const QString& modelPath) {
+void MoondreamWrapper::load() {
     QStringList files {
         "https://huggingface.co/whistleroosh/moondream-0.5B/resolve/main/config.json",
         "https://huggingface.co/whistleroosh/moondream-0.5B/resolve/main/coord_decoder.onnx",
@@ -53,11 +53,13 @@ void MoondreamWrapper::caption(const QString& imagePath, const QString& mode) {
 
     qDebug() << imagePath;
 
+    QString outDir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/models";
+
     auto _ = QtConcurrent::run([=, this]() {
         try {
             auto result = m_moondream->caption(
                 // imagePath.toStdString(),
-                "/sdcard/models/frieren.jpg",
+                outDir.toStdString() + "/frieren.jpg",
                 mode.toStdString(),
                 100);
             emit captionResult(QString::fromStdString(result));

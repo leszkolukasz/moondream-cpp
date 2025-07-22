@@ -15,7 +15,7 @@ ApplicationWindow {
     MoondreamWrapper {
         id: moondream
         onReadyChanged: console.log("Model ready:", ready)
-        onCaptionResult: resultText.text = caption
+        onCaptionResult: (result) => resultText.text = result
         onError: console.log("Error:", message)
     }
 
@@ -28,7 +28,7 @@ ApplicationWindow {
         Button {
             text: "Load Model"
             width: parent.width
-            onClicked: moondream.load("/sdcard/models/")
+            onClicked: moondream.load()
         }
 
         Button {

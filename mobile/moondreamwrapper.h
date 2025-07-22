@@ -15,7 +15,7 @@ class MoondreamWrapper : public QObject {
 public:
     explicit MoondreamWrapper(QObject* parent = nullptr);
 
-    Q_INVOKABLE void load(const QString& modelPath);
+    Q_INVOKABLE void load();
     Q_INVOKABLE void caption(const QString& imagePath, const QString& mode);
 
     bool isReady() const;
