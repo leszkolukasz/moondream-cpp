@@ -25,7 +25,6 @@ void MoondreamWrapper::load() {
         "https://huggingface.co/whistleroosh/moondream-0.5B/resolve/main/tokenizer.json",
         "https://huggingface.co/whistleroosh/moondream-0.5B/resolve/main/vision_encoder.onnx",
         "https://huggingface.co/whistleroosh/moondream-0.5B/resolve/main/vision_projection.onnx",
-        "https://raw.githubusercontent.com/leszkolukasz/moondream-cpp/master/frieren.jpg"
     };
 
     QString outDir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/models";
@@ -55,9 +54,26 @@ void MoondreamWrapper::caption(const QString& imagePath, const QString& mode) {
         return;
     }
 
-    qDebug() << imagePath;
+    QFile sourceFile(imagePath);
+    if (!sourceFile.open(QIODevice::ReadOnly)) {
+        qDebug() << "Cannot open source image";
+        emit error("Failed to open image file");
+        return;
+    }
 
-    QString outDir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/models";
+    QString outDir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    QString tempImagePath = outDir + "/image.jpg";
+
+    QFile destFile(tempImagePath);
+    if (!destFile.open(QIODevice::WriteOnly)) {
+        qDebug() << "Cannot create destination file";
+        emit error("Failed to create temporary image file");
+        return;
+    }
+
+    destFile.write(sourceFile.readAll());
+    sourceFile.close();
+    destFile.close();
 
     auto _ = QtConcurrent::run([=, this]() {
         try {
@@ -71,8 +87,7 @@ void MoondreamWrapper::caption(const QString& imagePath, const QString& mode) {
             );
 
             auto result = m_moondream->caption(
-                // imagePath.toStdString(),
-                outDir.toStdString() + "/frieren.jpg",
+                tempImagePath.toStdString(),
                 mode.toStdString(),
                 100,
                 cb

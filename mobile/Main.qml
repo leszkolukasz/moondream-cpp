@@ -50,11 +50,22 @@ ApplicationWindow {
             anchors.horizontalCenter: parent.horizontalCenter
         }
 
-        Button {
-            text: "Caption Image"
+        Row {
+            spacing: 16
             width: parent.width
-            enabled: moondream.ready && selectedImage.source.toString() !== "" && !moondream.running
-            onClicked: moondream.caption(selectedImage.source.toString(), "short")
+            Button {
+                text: "Caption"
+                width: parent.width * 0.60
+                enabled: moondream.ready && selectedImage.source.toString() !== "" && !moondream.running
+                onClicked: moondream.caption(selectedImage.source.toString(), modeSelector.currentText.toString())
+            }
+
+            ComboBox {
+                id: modeSelector
+                width: parent.width * 0.35
+                model: ["short", "normal"]
+                currentIndex: 0
+            }
         }
 
         Text {
