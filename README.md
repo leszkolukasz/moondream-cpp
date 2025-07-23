@@ -77,9 +77,12 @@ Caption:  The image depicts a young girl with light blue hair and elf-like featu
 1. Start app in Qt Creator.
 2. Click on `Load Model`. It will download the model files from the repository.
 3. Click on `Pick Image` to select an image from the gallery.
+
+
+
 4. Choose captioning mode (`short` or `normal`).
 5. Click on `Caption Image` to get the caption (streaming supported).
 
 ### Demo
 
-https://github.com/user-attachments/assets/faad04c8-2120-441f-8f6d-acc6bc091c1a
+https://github.com/user-attachments/assets/d6e34532-1471-4327-b4da-3cd31b619fe0
